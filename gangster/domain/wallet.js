@@ -90,7 +90,15 @@ const removeWallet = (ctx) => {
         const wallets = userInfo.wallets.filter(w => w.walletAddress.toLowerCase() !== walletAddress.toLowerCase());
         fs.writeFileSync(walletPath, JSON.stringify({ ...userInfo, wallets }));
         commitNewWallet(id);
-        return ctx.telegram.sendMessage(id, `telegramId: ${id}\nXoá ví thành công\n${buildRegistedWalletMsg(wallets)}`);
+
+        const msgPrefix = `telegramId: ${id}\nXoá ví thành công\nRegisted wallet:`;
+        const walletMsg = buildRegistedWalletMsg(wallets);
+        for (let i = 0; i < walletMsg.length; i++) {
+            const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
+            ctx.telegram.sendMessage(id, msg);
+
+        };
+        return
     } catch (error) {
         logger.error(`[removeWallet] ${id} - ${walletAddress} error`, error);
         return ctx.telegram.sendMessage(id, `Không thể lấy xoá ví`);
