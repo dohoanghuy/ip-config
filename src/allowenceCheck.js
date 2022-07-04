@@ -27,11 +27,3 @@ const checkAllowence = async () => {
         message: `Expire date ${expireDate} => BOT EXPIRED !!!`
     }
 }
-
-(async () => {
-    await checkAllowence();
-})();
-
-module.exports = {
-    checkAllowence
-}
