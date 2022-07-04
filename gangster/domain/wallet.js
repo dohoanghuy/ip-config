@@ -4,7 +4,11 @@ const { readFileToJson } = require('../../common/helper');
 const { execSync } = require('child_process');
 
 const buildRegistedWalletMsg = (wallets) => {
-    return `Registed wallet:\n${wallets.map(wallet => wallet.walletAddress).join(`\n`)}`;
+    const msg = [];
+    while (wallets.length) {
+        msg.push(wallets.splice(0, 50).map(wallet => wallet.walletAddress).join(`\n`));
+    }
+    return msg.join(`\n`);
 }
 
 const commitNewWallet = (id) => {
@@ -20,9 +24,13 @@ const addWallet = async (ctx) => {
 
 
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
-        const [, , walletAddress] = args;
-        if (walletAddress.length > 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
-
+        const [, , walletAddressList] = args;
+        // if (walletAddress.length > 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
+        const walletList = walletAddressList.split(",").map(walletAdress => ({
+            walletAddress,
+            whitelist: true,
+            expireTime: null
+        }));
 
         // Set wallet data
         const dir = `${process.cwd()}/gangster/data/${id}`;
@@ -31,8 +39,7 @@ const addWallet = async (ctx) => {
         let wallets;
         const walletPath = `${dir}/wallets.json`;
         if (!fs.existsSync(walletPath)) {
-            wallets = [{ walletAddress, whitelist: true, expireTime: null }];
-            fs.writeFileSync(walletPath, JSON.stringify({ username, telegramId: id, whitelist: true, wallets }));
+            fs.writeFileSync(walletPath, JSON.stringify({ username, telegramId: id, whitelist: true, wallets: walletList }));
             commitNewWallet(id);
             return ctx.telegram.sendMessage(id, `Đăng kí ví thành công\n${buildRegistedWalletMsg(wallets)}`);
         }
@@ -41,15 +48,24 @@ const addWallet = async (ctx) => {
         const userInfo = readFileToJson(walletPath);
         wallets = userInfo.wallets;
 
-        const wallet = wallets.find(w => w.walletAddress === walletAddress);
-        if (wallet) return ctx.telegram.sendMessage(id, `Ví đã tồn tại trong danh sách\n${buildRegistedWalletMsg(wallets)}`);
+        for (let i = 0; i < walletList.length; i++) {
+            const wallet = wallets.find(w => w.walletAddress === walletList[i].walletAddress);
+            if (!wallet) wallets.push(walletList[i]);
+            // else return ctx.telegram.sendMessage(id, `Ví đã tồn tại trong danh sách\n${buildRegistedWalletMsg(wallets)}`);
+        };
 
-        wallets.push({ walletAddress });
+
         fs.writeFileSync(walletPath, JSON.stringify({ ...userInfo, wallets }));
         commitNewWallet(id);
 
+        const msgPrefix = `telegramId: ${id}\nĐăng kí ví thành công\nRegisted wallet:`;
+        const walletMsg = buildRegistedWalletMsg(wallets);
+        for (let i = 0; i < walletMsg.length; i++) {
+            const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
+            ctx.telegram.sendMessage(id, msg);
 
-        return ctx.telegram.sendMessage(id, `telegramId: ${id}\nĐăng kí ví thành công\n${buildRegistedWalletMsg(wallets)}`);
+        };
+        return;
     } catch (error) {
         console.log(error);
         logger.error(`[addWallet] ${id} - ${username} error`, error);
