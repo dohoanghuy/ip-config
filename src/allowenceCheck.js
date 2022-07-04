@@ -24,7 +24,11 @@ const checkAllowence = async () => {
 
     return {
         isAllow: currentDateTime > expireDateTime,
-        message: `Expire date ${expireDate} => BOT EXPIRED !!!`
+        message: `${currentDateTime} Expire date ${expireDate} => BOT EXPIRED !!!`,
+        info: {
+            expireDateTime,
+            currentDateTime
+        }
     }
 }
 
