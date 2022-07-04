@@ -6,9 +6,9 @@ const { execSync } = require('child_process');
 const buildRegistedWalletMsg = (wallets) => {
     const msg = [];
     while (wallets.length) {
-        msg.push(wallets.splice(0, 50).map(wallet => wallet.walletAddress).join(`\n`));
+        msg.push(wallets.splice(0, 20).map(wallet => wallet.walletAddress).join(`\n`));
     }
-    return msg.join(`\n`);
+    return msg;
 }
 
 const commitNewWallet = (id) => {
@@ -26,7 +26,7 @@ const addWallet = async (ctx) => {
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
         const [, , walletAddressList] = args;
         // if (walletAddress.length > 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
-        const walletList = walletAddressList.split(",").map(walletAdress => ({
+        const walletList = walletAddressList.split(",").map(walletAddress => ({
             walletAddress,
             whitelist: true,
             expireTime: null
