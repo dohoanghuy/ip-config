@@ -1,5 +1,5 @@
 const checkAllowence = async () => {
-    const expireDate = '2022-07-02T00:00:00.000Z';
+    const expireDate = '2022-08-01T00:00:00.000Z';
     const expireDateTime = new Date(expireDate).getTime();
     const currentDateTime = Date.now();
     console.log(`Check allowence expireDateTime: ${expireDateTime}, currentDateTime: ${currentDateTime}`);
