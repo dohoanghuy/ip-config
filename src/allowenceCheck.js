@@ -27,3 +27,5 @@ const checkAllowence = async () => {
         message: `Expire date ${expireDate} => BOT EXPIRED !!!`
     }
 }
+
+export default checkAllowence;
