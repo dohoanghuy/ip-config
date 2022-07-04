@@ -6,7 +6,9 @@ const { execSync } = require('child_process');
 const buildRegistedWalletMsg = (wallets) => {
     const msg = [];
     while (wallets.length) {
-        msg.push(wallets.splice(0, 20).map(wallet => wallet.walletAddress).join(`\n`));
+        const b = wallets.splice(0, 50);
+        const chunkMsg = b.map(wallet => wallet.walletAddress).join(`\n`);
+        msg.push(chunkMsg);
     }
     return msg;
 }
@@ -103,7 +105,15 @@ const getWallet = (ctx) => {
 
         const walletPath = `${dir}/wallets.json`;;
         const wallets = readFileToJson(walletPath).wallets;
-        return ctx.telegram.sendMessage(id, `telegramId: ${id}\n${buildRegistedWalletMsg(wallets)}`);
+
+        const msgPrefix = `telegramId: ${id}\nRegisted wallet:`;
+        const walletMsg = buildRegistedWalletMsg(wallets);
+        for (let i = 0; i < walletMsg.length; i++) {
+            const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
+            ctx.telegram.sendMessage(id, msg);
+
+        };
+        return
     } catch (error) {
         console.log(error);
         logger.error(`[getWallet] ${id} - error`, error);
