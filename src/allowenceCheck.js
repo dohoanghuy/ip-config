@@ -1,11 +1,7 @@
-const axios = require('axios').default;
-
 const checkAllowence = async () => {
-    const { data: { utc_datetime } } = await axios.get("http://worldtimeapi.org/api/timezone/Asia/Ho_Chi_Minh");
-
     const expireDate = '2022-07-02T00:00:00.000Z';
     const expireDateTime = new Date(expireDate).getTime();
-    const currentDateTime = new Date(utc_datetime).getTime(); // Date.now();
+    const currentDateTime = Date.now();
     console.log(`Check allowence expireDateTime: ${expireDateTime}, currentDateTime: ${currentDateTime}`);
 
     // const configPath = `${process.cwd()}/config.json`;
@@ -31,6 +27,10 @@ const checkAllowence = async () => {
         message: `Expire date ${expireDate} => BOT EXPIRED !!!`
     }
 }
+
+(async () => {
+    await checkAllowence();
+})();
 
 module.exports = {
     checkAllowence
