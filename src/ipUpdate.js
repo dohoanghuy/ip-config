@@ -3,7 +3,7 @@ const fs = require('fs');
 const { logger } = require('./util');
 const { execSync } = require('child_process');
 
-const CHECK_INTERVAL_IN_MS = 1 * 3 * 1000;
+const CHECK_INTERVAL_IN_MS = 5 * 60 * 1000;
 
 const commitIpChange = (ip) => {
     console.log({
