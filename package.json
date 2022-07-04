@@ -1,10 +1,13 @@
 {
   "scripts": {
-    "ip": "nodemon src ipUpdate"
+    "ip": "nodemon src ipUpdate",
+    "gang": "node gangster/index.js"
   },
   "dependencies": {
     "axios": "^0.27.2",
+    "dotenv": "^16.0.1",
     "moment": "^2.29.3",
-    "nodemon": "^2.0.18"
+    "nodemon": "^2.0.18",
+    "telegraf": "^4.8.5"
   }
 }
