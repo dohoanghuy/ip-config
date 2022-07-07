@@ -14,9 +14,14 @@ const buildRegistedWalletMsg = (wallets) => {
 }
 
 const commitNewWallet = (id) => {
-    execSync(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
-    execSync(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
-    execSync(`git push`, { cwd: process.cwd() });
+    try {
+        execSync(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
+        execSync(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
+        execSync(`git push`, { cwd: process.cwd() });
+    } catch (error) {
+        console.error(`commit for user ${id} error!!!`, error);
+        logger.error(`commit for user ${id} error!!!`, error);
+    }
 }
 
 const addWallet = async (ctx) => {
@@ -65,7 +70,6 @@ const addWallet = async (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
-
         };
         return;
     } catch (error) {
