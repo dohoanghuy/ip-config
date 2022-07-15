@@ -19,7 +19,7 @@ Chỉ những ví đăng kí với bot Gangster (t.me/crypto_gangster_bot) mới
 
 if (botToken === undefined) throw new TypeError('BOT_TOKEN must be provided!');
 const bot = new Telegraf(botToken);
-bot.start((ctx) => ctx.reply('Hello'));
+bot.start((ctx) => ctx.reply(`Hello\n${helpWalletMsg}`));
 bot.help((ctx) => ctx.reply(helpWalletMsg));
 bot.on('message', async (ctx) => {
     if (!ctx.message.text || ctx.message.text.length === 0) return;
