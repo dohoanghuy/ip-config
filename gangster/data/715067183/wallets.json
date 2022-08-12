@@ -37,6 +37,11 @@
             "walletAddress": "0x87296464344e37434d2e1976c9659a7f27ad8a74",
             "whitelist": true,
             "expireTime": null
+        },
+        {
+            "walletAddress": "0x8091C8a637b75736d13F10459de6687b3788bf0E",
+            "whitelist": true,
+            "expireTime": null
         }
     ]
 }
