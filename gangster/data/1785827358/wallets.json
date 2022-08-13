@@ -4,6 +4,56 @@
     "whitelist": true,
     "wallets": [
         {
+            "walletAddress": "0xa3d32E476957D12f74d9Af7505831CbeEE23C74b",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xB7e9596b27D313874f7D0857A5C09380FF44bfb4",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0x612475D0CB4f68a4FfF163f406B97C8E29De72ef",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xde6Fb5865fD44972276f2bF8B532a1Cc135CCE69",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xF26F7a7438e6FA5041aaCFAE43bDA5Cd01e6f1eb",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xFECE7dE8B2B4AdFf6a48Ac96272FA898B46EccdA",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0x9E37E887aC42d0073189CE348f2BB0895E160c21",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xad4eB14f13a975b2AdBC8cB2aF9E72b80344fB14",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xF6BbD8cf1B4842aea882E5fe01e7C9D674d83B8",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xF6BbD8cf1B4842aea882E5fe01e7C9D674d83B82",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
             "walletAddress": "0x85eAA672AaD2cb6a926C537ceDc1f1C333FEfA51",
             "whitelist": true,
             "expireTime": null
