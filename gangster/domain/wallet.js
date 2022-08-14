@@ -15,6 +15,7 @@ const buildRegistedWalletMsg = (wallets) => {
 
 const commitNewWallet = (id) => {
     try {
+        execSync(`git pull`, { cwd: process.cwd() });
         execSync(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
         execSync(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
         execSync(`git push`, { cwd: process.cwd() });

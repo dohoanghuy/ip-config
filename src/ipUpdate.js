@@ -10,6 +10,7 @@ const commitIpChange = (ip) => {
         a: process.cwd(),
         b: __dirname
     });
+    execSync(`git pull`, { cwd: process.cwd() });
     execSync(`git add ${__dirname}/config/ip.json`, { cwd: process.cwd() });
     execSync(`git commit -m "update ip ${ip}"`, { cwd: process.cwd() });
     execSync(`git push`, { cwd: process.cwd() });
