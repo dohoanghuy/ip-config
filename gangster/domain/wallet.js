@@ -33,12 +33,18 @@ const addWallet = async (ctx) => {
 
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
         const [, , walletAddressList] = args;
+
+        if (walletAddressList.trim().length < 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
+
         // if (walletAddress.length > 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
-        const walletList = walletAddressList.split(",").map(walletAddress => ({
-            walletAddress,
-            whitelist: true,
-            expireTime: null
-        }));
+        let walletList = [];
+        walletList = walletList.concat(
+            walletAddressList.trim().split(",").map(walletAddress => ({
+                walletAddress,
+                whitelist: true,
+                expireTime: null
+            }))
+        );
 
         // Set wallet data
         const dir = `${process.cwd()}/gangster/data/${id}`;
