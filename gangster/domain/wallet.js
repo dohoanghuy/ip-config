@@ -75,7 +75,7 @@ const addWallet = async (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
-            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, msg);
+            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, `@${username} ${msg}`);
         };
         return;
     } catch (error) {
@@ -86,7 +86,7 @@ const addWallet = async (ctx) => {
 }
 
 const removeWallet = (ctx) => {
-    const { id } = ctx.message.from;
+    const { id, username } = ctx.message.from;
     const args = ctx.message.text.split(" ");
     try {
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
@@ -106,7 +106,7 @@ const removeWallet = (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
-            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, msg);
+            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, `@${username} ${msg}`);
 
         };
         return
@@ -117,7 +117,7 @@ const removeWallet = (ctx) => {
 }
 
 const getWallet = (ctx) => {
-    const { id } = ctx.message.from;
+    const { id, username } = ctx.message.from;
     try {
         let dir = `${process.cwd()}/gangster/data/${id}`;
         if (!fs.existsSync(dir)) return ctx.telegram.sendMessage(id, `Tài khoản chưa đăng ký ví`);
@@ -130,7 +130,7 @@ const getWallet = (ctx) => {
         for (let i = 0; i < walletMsg.length; i++) {
             const msg = i === 0 ? `${msgPrefix}\n${walletMsg[i]}` : walletMsg[i];
             ctx.telegram.sendMessage(id, msg);
-            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, msg);
+            if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, `@${username} ${msg}`);
         };
         return
     } catch (error) {
