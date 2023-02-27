@@ -4,6 +4,10 @@ const { readFileToJson } = require('../../common/helper');
 const { execSync } = require('child_process');
 
 const buildRegistedWalletMsg = (wallets) => {
+    if (!wallets) {
+        logger.error(`[buildRegistedWalletMsg] empty wallets`, wallets);
+        return '';
+    }
     const msg = [];
     while (wallets.length) {
         const b = wallets.splice(0, 50);
