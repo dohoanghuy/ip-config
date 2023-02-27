@@ -20,16 +20,16 @@ Chỉ những ví đăng kí với bot Gangster (t.me/crypto_gangster_bot) mới
 if (botToken === undefined) throw new TypeError('BOT_TOKEN must be provided!');
 const bot = new Telegraf(botToken);
 bot.start(async (ctx) => {
-    await ctx.telegram.setMyCommands([
-        {
-            command: `/${commandPrefix}_wallet`,
-            description: "Get list register wallet",
-        }
-    ]);
+    // await ctx.telegram.setMyCommands([
+    //     {
+    //         command: `/${commandPrefix}_wallet`,
+    //         description: "Get list register wallet",
+    //     }
+    // ]);
     return ctx.reply(`Hello\n${helpWalletMsg}`)
 })
 
-bot.command(`/${commandPrefix}_wallet`, (ctx) => getWallet(ctx));
+// bot.command(`/${commandPrefix}_wallet`, (ctx) => getWallet(ctx));
 
 bot.help((ctx) => ctx.reply(helpWalletMsg));
 bot.on('message', async (ctx) => {
