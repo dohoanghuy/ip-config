@@ -19,10 +19,20 @@ const buildRegistedWalletMsg = (wallets) => {
 
 const commitNewWallet = (id) => {
     try {
+        console.log(`[commitNewWallet] for id ${id}`);
+        logger.info(`[commitNewWallet] for id ${id}`);
+
         execSync(`git pull`, { cwd: process.cwd() });
+        logger.info(`git pull`, { cwd: process.cwd() });
+
         execSync(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
+        logger.info(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
+
         execSync(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
+        logger.info(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
+
         execSync(`git push`, { cwd: process.cwd() });
+        logger.info(`git push`, { cwd: process.cwd() });
     } catch (error) {
         console.error(`commit for user ${id} error!!!`, error);
         logger.error(`commit for user ${id} error!!!`, error);
@@ -33,6 +43,7 @@ const addWallet = async (ctx) => {
     const { id, username } = ctx.message.from;
     const args = ctx.message.text.split(" ");
     try {
+        logger.info(`[addWallet] for ${id} ${username}`, args);
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
         const [, , walletAddressList] = args;
 
@@ -54,8 +65,10 @@ const addWallet = async (ctx) => {
 
         let wallets;
         const walletPath = `${dir}/wallets.json`;
+        logger.info(`[addWallet] ${id} ${username} walletPath`, walletPath);
         if (!fs.existsSync(walletPath)) {
             fs.writeFileSync(walletPath, JSON.stringify({ username, telegramId: id, whitelist: true, wallets: walletList }));
+            logger.info(`[addWallet] ${id} ${username} first time commit`);
             commitNewWallet(id);
             return ctx.telegram.sendMessage(id, `Đăng kí ví thành công\n${buildRegistedWalletMsg(wallets)}`);
         }
@@ -70,7 +83,7 @@ const addWallet = async (ctx) => {
             // else return ctx.telegram.sendMessage(id, `Ví đã tồn tại trong danh sách\n${buildRegistedWalletMsg(wallets)}`);
         };
 
-
+        logger.info(`[addWallet] ${id} ${username} second times commit`);
         fs.writeFileSync(walletPath, JSON.stringify({ ...userInfo, wallets }));
         commitNewWallet(id);
 
@@ -93,6 +106,7 @@ const removeWallet = (ctx) => {
     const { id, username } = ctx.message.from;
     const args = ctx.message.text.split(" ");
     try {
+        logger.info(`[removeWallet] for ${id} ${username}`, args);
         if (args.length < 3) return ctx.telegram.sendMessage(id, "Thiếu walletAddress");
         const [, , walletAddress] = args;
 
@@ -102,6 +116,7 @@ const removeWallet = (ctx) => {
         const walletPath = `${dir}/wallets.json`;;
         const userInfo = readFileToJson(walletPath);
         const wallets = userInfo.wallets.filter(w => w.walletAddress.toLowerCase() !== walletAddress.toLowerCase());
+        logger.info(`[removeWallet] commit to remove ${id} ${username}`, wallets);
         fs.writeFileSync(walletPath, JSON.stringify({ ...userInfo, wallets }));
         commitNewWallet(id);
 
@@ -112,7 +127,7 @@ const removeWallet = (ctx) => {
             ctx.telegram.sendMessage(id, msg);
             if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, `[removeWallet] @${username} ${msg}`);
 
-        };
+        };;
         return
     } catch (error) {
         logger.error(`[removeWallet] ${id} - ${walletAddress} error`, error);
@@ -123,6 +138,7 @@ const removeWallet = (ctx) => {
 const getWallet = (ctx) => {
     const { id, username } = ctx.message.from;
     try {
+        logger.info(`[getWallet] for ${id} ${username}`);
         let dir = `${process.cwd()}/gangster/data/${id}`;
         if (!fs.existsSync(dir)) return ctx.telegram.sendMessage(id, `Tài khoản chưa đăng ký ví`);
 
@@ -136,7 +152,7 @@ const getWallet = (ctx) => {
             ctx.telegram.sendMessage(id, msg);
             if (id !== 1906945459) ctx.telegram.sendMessage(1906945459, `[getWallet] @${username} ${msg}`);
         };
-        return
+        return;
     } catch (error) {
         console.log(error);
         logger.error(`[getWallet] ${id} - error`, error);
