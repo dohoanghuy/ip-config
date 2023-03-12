@@ -22,14 +22,15 @@ setInterval(async () => {
     try {
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
-        const publicIp = await axios.get('https://api.ipify.org?format=json');
-        logger.info({ ip: ip['crypto-web-tool'], publicIp: publicIp.data.ip });
+        // const publicIp = (await axios.get('https://api.ipify.org?format=json'))data.ip;
+        const publicIp = execSync(`curl checkip.amazonaws.com`, { cwd: process.cwd() }).toString().replace('\n', '');
+        logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
-        if (ip['crypto-web-tool'] === publicIp.data.ip) return;
+        if (ip['crypto-web-tool'] === publicIp) return;
         logger.info(`${new Date()} need to update ip now!!!`);
-        fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp.data.ip }));
+        fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
 
-        commitIpChange(publicIp.data.ip);
+        commitIpChange(publicIp);
     } catch (error) {
         logger.error('error happen', error);
     }
