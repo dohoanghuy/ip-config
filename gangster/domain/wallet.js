@@ -17,10 +17,10 @@ const buildRegistedWalletMsg = (wallets) => {
     return msg;
 }
 
-const commitNewWallet = (id) => {
+const commitWallet = (id, msg) => {
     try {
-        console.log(`[commitNewWallet] for id ${id}`);
-        logger.info(`[commitNewWallet] for id ${id}`);
+        console.log(`[commitWallet] for id ${id}`);
+        logger.info(`[commitWallet] for id ${id}`);
 
         execSync(`git pull`, { cwd: process.cwd() });
         logger.info(`git pull`, { cwd: process.cwd() });
@@ -28,8 +28,8 @@ const commitNewWallet = (id) => {
         execSync(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
         logger.info(`git add ${process.cwd()}/gangster/data/${id}/wallets.json`, { cwd: process.cwd() });
 
-        execSync(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
-        logger.info(`git commit -m "user ${id} add wallet"`, { cwd: process.cwd() });
+        execSync(`git commit -m "user ${id} ${msg} wallet"`, { cwd: process.cwd() });
+        logger.info(`git commit -m "user ${id} ${msg} wallet"`, { cwd: process.cwd() });
 
         execSync(`git push`, { cwd: process.cwd() });
         logger.info(`git push`, { cwd: process.cwd() });
@@ -69,7 +69,7 @@ const addWallet = async (ctx) => {
         if (!fs.existsSync(walletPath)) {
             fs.writeFileSync(walletPath, JSON.stringify({ username, telegramId: id, whitelist: true, wallets: walletList }));
             logger.info(`[addWallet] ${id} ${username} first time commit`);
-            commitNewWallet(id);
+            commitWallet(id, 'add');
             return ctx.telegram.sendMessage(id, `Đăng kí ví thành công\n${buildRegistedWalletMsg(wallets)}`);
         }
 
@@ -85,7 +85,7 @@ const addWallet = async (ctx) => {
 
         logger.info(`[addWallet] ${id} ${username} second times commit`);
         fs.writeFileSync(walletPath, JSON.stringify({ ...userInfo, wallets }));
-        commitNewWallet(id);
+        commitWallet(id, 'add');
 
         const msgPrefix = `telegramId: ${id}\nĐăng kí ví thành công\nRegisted wallet:`;
         const walletMsg = buildRegistedWalletMsg(wallets);
@@ -118,7 +118,7 @@ const removeWallet = (ctx) => {
         const wallets = userInfo.wallets.filter(w => w.walletAddress.toLowerCase() !== walletAddress.toLowerCase());
         logger.info(`[removeWallet] commit to remove ${id} ${username}`, wallets);
         fs.writeFileSync(walletPath, JSON.stringify({ ...userInfo, wallets }));
-        commitNewWallet(id);
+        commitWallet(id, 'remove');
 
         const msgPrefix = `telegramId: ${id}\nXoá ví thành công\nRegisted wallet:`;
         const walletMsg = buildRegistedWalletMsg(wallets);
