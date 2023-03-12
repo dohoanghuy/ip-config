@@ -2,6 +2,7 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const { addWallet, removeWallet, getWallet } = require('./domain/wallet');
 const { getKey } = require('./domain/getKey');
+const { logger } = require('./util');
 
 // const botToken = process.env.TEST_TOKEN;
 const botToken = process.env.GANSTER_BOT_TOKEN;
@@ -42,6 +43,11 @@ bot.on('message', async (ctx) => {
     if (ctx.message.text.includes(`/${commandPrefix}_wallet remove`)) return removeWallet(ctx);
     if (ctx.message.text.includes(`/${commandPrefix}_wallet`)) return getWallet(ctx);
     if (ctx.message.text.includes(`/${commandPrefix} get key`)) return getKey(ctx);
+});
+bot.catch((error, ctx) => {
+    console.log(error);
+    logger.error(`Ooops, encountered an error for ${ctx.updateType}`, error);
+    setTimeout(ctx.telegram.sendMessage(1906945459, `Có lỗi xảy ra. ${JSON.stringify(error)}`), 10000);
 });
 bot.action('delete', (ctx) => ctx.deleteMessage());
 bot.launch();
