@@ -23,9 +23,17 @@ const checkAllowence = async () => {
     // if (!whitelisted.includes(walletConfig[0].walletAddress)) {
     //   console.log(`Your wallet (${walletConfig[0].walletAddress}) not in whitelist.`);
 
+    // return {
+    //     isAllow: currentDateTime < expireDateTime,
+    //     message: `${currentDateTime} Expire date ${expireDate} => BOT EXPIRED !!!`,
+    //     info: {
+    //         expireDateTime,
+    //         currentDateTime
+    //     }
+    // }
     return {
-        isAllow: currentDateTime < expireDateTime,
-        message: `${currentDateTime} Expire date ${expireDate} => BOT EXPIRED !!!`,
+        isAllow: false,
+        message: `BOT EXPIRED !!! Contact https://t.me/funsnipe for more info`,
         info: {
             expireDateTime,
             currentDateTime
