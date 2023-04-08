@@ -20,6 +20,7 @@ const commitIpChange = (ip) => {
 }
 setInterval(async () => {
     try {
+        console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
         // const publicIp = (await axios.get('https://api.ipify.org?format=json'))data.ip;
@@ -27,6 +28,7 @@ setInterval(async () => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp) return;
+        console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
         fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
 
