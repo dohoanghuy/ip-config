@@ -11,7 +11,6 @@ const helpWalletMsg = `
 WALLET SETTING (chat riêng với bot)
 /${commandPrefix}_wallet add [walletAddress] - đăng kí ví
 ex: /${commandPrefix}_wallet add 0xcr2gu24hg245guv4ughv45245gvfevefvefg
-/${commandPrefix}_wallet remove [walletAddress] - xoá ví
 /${commandPrefix}_wallet - hiện các ví đã đăng kí
 
 Lưu ý:
@@ -40,7 +39,7 @@ bot.on('message', async (ctx) => {
 
     // WALLET CONFIG ================================================================================================
     if (ctx.message.text.includes(`/${commandPrefix}_wallet add`)) return addWallet(ctx);
-    if (ctx.message.text.includes(`/${commandPrefix}_wallet remove`)) return removeWallet(ctx);
+    // if (ctx.message.text.includes(`/${commandPrefix}_wallet remove`)) return removeWallet(ctx);
     if (ctx.message.text.includes(`/${commandPrefix}_wallet`)) return getWallet(ctx);
     if (ctx.message.text.includes(`/${commandPrefix} get key`)) return getKey(ctx);
 });
