@@ -18,13 +18,36 @@ const commitIpChange = (ip) => {
     // console.log(stdout);
     // execSync('git status', { cwd: __dirname });
 }
-setInterval(async () => {
+
+const checkAndUpdateIp = async () => {
     try {
         console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
         // const publicIp = (await axios.get('https://api.ipify.org?format=json'))data.ip;
-        const publicIp = execSync(`curl checkip.amazonaws.com`, { cwd: process.cwd() }).toString().replace('\n', '');
+        let publicIp;
+        try {
+            publicIp = execSync(`curl icanhazip.com`, { cwd: process.cwd() }).toString().replace('\n', '');
+        } catch (error) {
+            logger.info(`curl icanhazip.com ${error}`);
+            try {
+                publicIp = execSync(`curl ifconfig.me`, { cwd: process.cwd() }).toString().replace('\n', '');
+            } catch (error) {
+                logger.info(`curl ifconfig.me ${error}`);
+                try {
+                    publicIp = execSync(`curl api.ipify.org`, { cwd: process.cwd() }).toString().replace('\n', '');
+                } catch (error) {
+                    logger.info(`curl api.ipify.org ${error}`);
+                    try {
+                        publicIp = execSync(`curl ipinfo.io/ip`, { cwd: process.cwd() }).toString().replace('\n', '');
+                    } catch (error) {
+                        logger.info(`curl ipinfo.io/ip ${error}`);
+                        throw error;
+                    }
+                }
+            }
+        }
+        
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp) return;
@@ -36,4 +59,9 @@ setInterval(async () => {
     } catch (error) {
         logger.error('error happen', error);
     }
-}, CHECK_INTERVAL_IN_MS);
+}
+
+(async () => {
+    await checkAndUpdateIp();
+    setInterval(checkAndUpdateIp, CHECK_INTERVAL_IN_MS);
+})();
