@@ -77,7 +77,7 @@ const addWallet = async (ctx) => {
         wallets = userInfo.wallets;
 
         for (let i = 0; i < walletList.length; i++) {
-            if (walletList[i].length > 42 || !walletList[i].startsWith('0x')) {
+            if (walletList[i].walletAddress.length > 42 || !walletList[i].walletAddress.startsWith('0x')) {
                 return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
             }
 
