@@ -5,7 +5,8 @@ const { getKey } = require('./domain/getKey');
 const { logger } = require('./util');
 
 // const botToken = process.env.TEST_TOKEN;
-const botToken = process.env.GANSTER_BOT_TOKEN;
+// const botToken = process.env.GANSTER_BOT_TOKEN;
+const botToken = process.env.GANSTER2_BOT_TOKEN;
 const commandPrefix = 'gang';
 const helpWalletMsg = `
 WALLET SETTING (chat riêng với bot)

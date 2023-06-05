@@ -49,7 +49,6 @@ const addWallet = async (ctx) => {
 
         if (walletAddressList.trim().length < 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
 
-        // if (walletAddress.length > 42) return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
         let walletList = [];
         walletList = walletList.concat(
             walletAddressList.trim().split(",").map(walletAddress => ({
@@ -78,6 +77,10 @@ const addWallet = async (ctx) => {
         wallets = userInfo.wallets;
 
         for (let i = 0; i < walletList.length; i++) {
+            if (walletList[i].length > 42 || !walletList[i].startsWith('0x')) {
+                return ctx.telegram.sendMessage(id, "walletAddress không hợp lệ");
+            }
+
             const wallet = wallets.find(w => w.walletAddress === walletList[i].walletAddress);
             if (!wallet) wallets.push(walletList[i]);
             // else return ctx.telegram.sendMessage(id, `Ví đã tồn tại trong danh sách\n${buildRegistedWalletMsg(wallets)}`);
