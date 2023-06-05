@@ -15,7 +15,7 @@ ex: /${commandPrefix}_wallet add 0xcr2gu24hg245guv4ughv45245gvfevefvefg
 /${commandPrefix}_wallet - hiện các ví đã đăng kí
 
 Lưu ý:
-Chỉ những ví đăng kí với bot Gangster (t.me/crypto_gangster_bot) mới có thể sử dụng với tool
+Chỉ những ví đăng kí với bot Gangster (t.me/gangster2_crypto_bot) mới có thể sử dụng với tool
 `;
 
 if (botToken === undefined) throw new TypeError('BOT_TOKEN must be provided!');
