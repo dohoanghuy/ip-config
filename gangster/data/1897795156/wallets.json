@@ -1,1 +1,37 @@
-{"username":"caubo","telegramId":1897795156,"whitelist":true,"wallets":[{"walletAddress":"0x1a6684A5A8522496d6743bE64745cd3C71115269","whitelist":true,"expireTime":null},{"walletAddress":"","whitelist":true,"expireTime":null},{"walletAddress":"0x58AfF2E6C4783B274A0e79d330FD911d49324F5A","whitelist":true,"expireTime":null},{"walletAddress":"0x4137DD57370a59FC7455F414F119cC69f9999999","whitelist":true,"expireTime":null},{"walletAddress":"0x48EaebB9Ff04D8B168fF03EdBB463048436A69b6","whitelist":true,"expireTime":null},{"walletAddress":"0xe93df1a3E31C2E092F8Dc4138DD2070e88578Fb6","whitelist":true,"expireTime":null},{"walletAddress":"0x3EAF891206C4F47d444b8a94d59f6a02609eE48D","whitelist":true,"expireTime":null}]}
+{
+    "username": "caubo",
+    "telegramId": 1897795156,
+    "whitelist": true,
+    "wallets": [
+        {
+            "walletAddress": "0x1a6684A5A8522496d6743bE64745cd3C71115269",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0x58AfF2E6C4783B274A0e79d330FD911d49324F5A",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0x4137DD57370a59FC7455F414F119cC69f9999999",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0x48EaebB9Ff04D8B168fF03EdBB463048436A69b6",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0xe93df1a3E31C2E092F8Dc4138DD2070e88578Fb6",
+            "whitelist": true,
+            "expireTime": null
+        },
+        {
+            "walletAddress": "0x3EAF891206C4F47d444b8a94d59f6a02609eE48D",
+            "whitelist": true,
+            "expireTime": null
+        }
+    ]
+}
