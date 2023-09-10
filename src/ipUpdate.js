@@ -26,7 +26,7 @@ const checkAndUpdateIp = async () => {
         const ip = JSON.parse(rawdata);
         let publicIp;
         try {
-            publicIp = execSync(`dig TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '');
+            publicIp = execSync(`dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '');
         } catch (error) {
             logger.info(`Error happen ${error}`);
             throw error;
