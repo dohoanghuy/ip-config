@@ -39,7 +39,7 @@ const checkAndUpdateIp = async () => {
         logger.info(`${new Date()} need to update ip now!!!`);
         fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
 
-        // commitIpChange(publicIp);
+        commitIpChange(publicIp);
     } catch (error) {
         logger.error('error happen', error);
     }
