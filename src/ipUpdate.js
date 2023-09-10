@@ -24,30 +24,14 @@ const checkAndUpdateIp = async () => {
         console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
-        // const publicIp = (await axios.get('https://api.ipify.org?format=json'))data.ip;
         let publicIp;
         try {
-            publicIp = execSync(`curl icanhazip.com`, { cwd: process.cwd() }).toString().replace('\n', '');
+            publicIp = execSync(`dig TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '');
         } catch (error) {
-            logger.info(`curl icanhazip.com ${error}`);
-            try {
-                publicIp = execSync(`curl ifconfig.me`, { cwd: process.cwd() }).toString().replace('\n', '');
-            } catch (error) {
-                logger.info(`curl ifconfig.me ${error}`);
-                try {
-                    publicIp = execSync(`curl api.ipify.org`, { cwd: process.cwd() }).toString().replace('\n', '');
-                } catch (error) {
-                    logger.info(`curl api.ipify.org ${error}`);
-                    try {
-                        publicIp = execSync(`curl ipinfo.io/ip`, { cwd: process.cwd() }).toString().replace('\n', '');
-                    } catch (error) {
-                        logger.info(`curl ipinfo.io/ip ${error}`);
-                        throw error;
-                    }
-                }
-            }
+            logger.info(`Error happen ${error}`);
+            throw error;
         }
-        
+
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp) return;
@@ -55,7 +39,7 @@ const checkAndUpdateIp = async () => {
         logger.info(`${new Date()} need to update ip now!!!`);
         fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
 
-        commitIpChange(publicIp);
+        // commitIpChange(publicIp);
     } catch (error) {
         logger.error('error happen', error);
     }
