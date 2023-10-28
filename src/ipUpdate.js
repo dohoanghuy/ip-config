@@ -27,6 +27,8 @@ const checkAndUpdateIp = async (bot) => {
         console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
+        bot.telegram.sendMessage(1906945459, `Start fetch ip (current ip: ${ip['crypto-web-tool']})}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+
         let publicIp;
         try {
             publicIp = execSync(`dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '').replace('\"', '').replace('"', '');
@@ -38,7 +40,7 @@ const checkAndUpdateIp = async (bot) => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp) return;
-        bot.telegram.sendMessage(1906945459, `New ip: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        bot.telegram.sendMessage(1906945459, `Old ip: ${ip['crypto-web-tool']}}\nNew ip: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
