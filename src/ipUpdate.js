@@ -27,7 +27,7 @@ const checkAndUpdateIp = async (bot) => {
         console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
-        bot.telegram.sendMessage(1906945459, `Start fetch ip (current ip: ${ip['crypto-web-tool']})}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        bot.telegram.sendMessage(1906945459, `${new Date().toUTCString()} Start fetch ip (current ip: ${ip['crypto-web-tool']})}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         let publicIp;
         try {
@@ -40,7 +40,7 @@ const checkAndUpdateIp = async (bot) => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp) return;
-        bot.telegram.sendMessage(1906945459, `Old ip: ${ip['crypto-web-tool']}}\nNew ip: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        bot.telegram.sendMessage(1906945459, `${new Date().toUTCString()} Old ip: ${ip['crypto-web-tool']}}\nNew ip: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
@@ -49,7 +49,7 @@ const checkAndUpdateIp = async (bot) => {
         commitIpChange(publicIp);
     } catch (error) {
         logger.error('error happen', error);
-        bot.telegram.sendMessage(1906945459, `Update ip error ${JSON.stringify(error)}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        bot.telegram.sendMessage(1906945459, `${new Date().toUTCString()} Update ip error ${JSON.stringify(error)}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
     }
 }
 
