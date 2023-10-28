@@ -27,11 +27,12 @@ const checkAndUpdateIp = async (bot) => {
         console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
-        bot.telegram.sendMessage(1906945459, `${new Date().toUTCString()} Start fetch ip (current ip: ${ip['crypto-web-tool']})}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nStart fetch ip (current ip: ${ip['crypto-web-tool']})}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         let publicIp;
         try {
             publicIp = execSync(`dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '').replace('\"', '').replace('"', '');
+            await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nFetch ip success: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
         } catch (error) {
             logger.info(`Error happen ${error}`);
             throw error;
@@ -40,16 +41,18 @@ const checkAndUpdateIp = async (bot) => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp) return;
-        bot.telegram.sendMessage(1906945459, `${new Date().toUTCString()} Old ip: ${ip['crypto-web-tool']}}\nNew ip: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: ${ip['crypto-web-tool']}} -> ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
         fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nWrite to file success: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         commitIpChange(publicIp);
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nCommit new ip success: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
     } catch (error) {
         logger.error('error happen', error);
-        bot.telegram.sendMessage(1906945459, `${new Date().toUTCString()} Update ip error ${JSON.stringify(error)}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\ncheckAndUpdateIp error ${JSON.stringify(error)}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
     }
 }
 
