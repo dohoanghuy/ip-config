@@ -27,7 +27,7 @@ const checkAndUpdateIp = async (bot) => {
         console.log('Start fetch ip ...');
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nStart fetch ip (current ip: ${ip['crypto-web-tool']})}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nStart fetch ip (current ip: ${ip['crypto-web-tool']})`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         let publicIp;
         try {
