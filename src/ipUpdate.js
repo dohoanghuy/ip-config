@@ -63,7 +63,7 @@ const checkAndUpdateIp = async (bot) => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp && remoteIp.data['crypto-web-tool'] === publicIp) return;
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: ${ip['crypto-web-tool']}} -> ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: ${ip['crypto-web-tool']} -> ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
 
         // console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
