@@ -22,6 +22,8 @@ const commitIpChange = (ip) => {
     // execSync('git status', { cwd: __dirname });
 }
 
+const htmlOptions = { parse_mode: 'HTML', disable_web_page_preview: 'true' };
+
 const checkAndUpdateIp = async (bot) => {
     try {
         console.log('Start fetch ip ...');
@@ -49,12 +51,12 @@ const checkAndUpdateIp = async (bot) => {
             timeout: Number(process.env.TIMEOUT) || 30000
         });
 
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nStart fetch ip (current ip: ${ip['crypto-web-tool']}, remote ip: ${remoteIp.data['crypto-web-tool']})`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        // await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nStart fetch ip (current ip: ${ip['crypto-web-tool']}, remote ip: ${remoteIp.data['crypto-web-tool']})`, htmlOptions)
 
         let publicIp;
         try {
             publicIp = execSync(`dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '').replace('\"', '').replace('"', '');
-            await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nFetch ip success: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+            // await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nFetch ip success: ${publicIp}`, htmlOptions)
         } catch (error) {
             logger.info(`Error happen ${error}`);
             throw error;
@@ -63,24 +65,32 @@ const checkAndUpdateIp = async (bot) => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp && remoteIp.data['crypto-web-tool'] === publicIp) return;
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: ${ip['crypto-web-tool']} -> ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: ${ip['crypto-web-tool']} -> ${publicIp}`, htmlOptions)
 
         // console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
         fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nWrite to file success: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nWrite to file success: ${publicIp}`, htmlOptions)
 
         commitIpChange(publicIp);
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nCommit new ip success: ${publicIp}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nCommit new ip success: ${publicIp}`, htmlOptions)
     } catch (error) {
         logger.error('error happen', error);
-        bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\ncheckAndUpdateIp error ${JSON.stringify(error)}`, { parse_mode: 'HTML', disable_web_page_preview: 'true' })
+        bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\ncheckAndUpdateIp error ${JSON.stringify(error)}`, htmlOptions)
     }
 }
 
 (async () => {
     const bot = new Telegraf("5153851993:AAGglGcrB86Z7w--5pdUNKM3qs_udO8l-II");
     bot.start(async (ctx) => ctx.reply(`Hello`));
+    bot.on('message', async (ctx) => {
+        if (!ctx.message.text || ctx.message.text.length === 0) return;
+        if (ctx.message.text.includes(`/ip`)) {
+            const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
+            const ip = JSON.parse(rawdata);
+            return bot.telegram.sendMessage(1906945459, `<code>${ip['crypto-web-tool']}</code>`, htmlOptions);
+        }
+    });
     bot.catch((error, ctx) => {
         console.log(`Ooops, encountered an error for ${ctx.updateType}`, error);
         setTimeout(ctx.telegram.sendMessage(1906945459, `Có lỗi xảy ra. ${JSON.stringify(error)}`), 10000);
