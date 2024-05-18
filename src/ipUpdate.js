@@ -65,15 +65,15 @@ const checkAndUpdateIp = async (bot) => {
         logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
 
         if (ip['crypto-web-tool'] === publicIp && remoteIp.data['crypto-web-tool'] === publicIp) return;
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: ${ip['crypto-web-tool']} -> ${publicIp}`, htmlOptions)
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: <code>${ip['crypto-web-tool']}</code> -> <code>${publicIp}</code>`, htmlOptions)
 
         // console.log(`${new Date()} need to update ip now!!!`);
         logger.info(`${new Date()} need to update ip now!!!`);
         fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nWrite to file success: ${publicIp}`, htmlOptions)
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nWrite to file success: <code>${publicIp}</code>`, htmlOptions)
 
         commitIpChange(publicIp);
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nCommit new ip success: ${publicIp}`, htmlOptions)
+        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nCommit new ip success: <code>${publicIp}</code>`, htmlOptions)
     } catch (error) {
         logger.error('error happen', error);
         bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\ncheckAndUpdateIp error ${JSON.stringify(error)}`, htmlOptions)
