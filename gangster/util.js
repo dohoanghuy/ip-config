@@ -1,5 +1,5 @@
 const fs = require('fs');
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 const writeAnalyzeLog = (msg) => {
     const today = moment().format('YYYY-MM-DD');
