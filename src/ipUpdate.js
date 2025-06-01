@@ -26,6 +26,7 @@ const htmlOptions = { parse_mode: 'HTML', disable_web_page_preview: 'true' };
 const checkAndUpdateIp = async (bot) => {
     try {
         console.log('Start fetch ip ...');
+        await bot.telegram.sendMessage(1906945459, `Start fetch ip...`, htmlOptions)
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
 
