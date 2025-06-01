@@ -26,7 +26,6 @@ const htmlOptions = { parse_mode: 'HTML', disable_web_page_preview: 'true' };
 const checkAndUpdateIp = async (bot) => {
     try {
         console.log('Start fetch ip ...');
-        await bot.telegram.sendMessage(1906945459, `Start fetch ip...`, htmlOptions)
         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
         const ip = JSON.parse(rawdata);
 
@@ -110,6 +109,7 @@ const checkAndUpdateIp = async (bot) => {
     client.on(Events.ClientReady, readyClient => {
         console.log(`Logged in as ${readyClient.user.tag}!`);
         ipChannel = client.channels.cache.find(channel => channel.name === 'ip');
+        ipChannel.send('Ip bot started successfully!');
     });
 
     const bot = {
