@@ -1,11 +1,10 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
+const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 const { logger } = require('./util');
 const { execSync } = require('child_process');
-
-const CHECK_INTERVAL_IN_MS = 60 * 60 * 1000;
 
 const commitIpChange = (ip) => {
     console.log({
@@ -81,20 +80,80 @@ const checkAndUpdateIp = async (bot) => {
 }
 
 (async () => {
-    const bot = new Telegraf("5153851993:AAGglGcrB86Z7w--5pdUNKM3qs_udO8l-II");
-    bot.start(async (ctx) => ctx.reply(`Hello`));
-    bot.on('message', async (ctx) => {
-        if (!ctx.message.text || ctx.message.text.length === 0) return;
-        if (ctx.message.text.includes(`/ip`)) {
-            const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
-            const ip = JSON.parse(rawdata);
-            return bot.telegram.sendMessage(1906945459, `<code>${ip['crypto-web-tool']}</code>`, htmlOptions);
+    // const bot = new Telegraf("5153851993:AAGglGcrB86Z7w--5pdUNKM3qs_udO8l-II");
+    // bot.start(async (ctx) => ctx.reply(`Hello`));
+    // bot.on('message', async (ctx) => {
+    //     if (!ctx.message.text || ctx.message.text.length === 0) return;
+    //     if (ctx.message.text.includes(`/ip`)) {
+    //         const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
+    //         const ip = JSON.parse(rawdata);
+    //         return bot.telegram.sendMessage(1906945459, `<code>${ip['crypto-web-tool']}</code>`, htmlOptions);
+    //     }
+    // });
+    // bot.catch((error, ctx) => {
+    //     console.log(`Ooops, encountered an error for ${ctx.updateType}`, error);
+    //     setTimeout(ctx.telegram.sendMessage(1906945459, `Có lỗi xảy ra. ${JSON.stringify(error)}`), 10000);
+    // });
+    // bot.launch();
+
+    // // Enable graceful stop
+    // process.once('SIGINT', () => {
+    //     bot.stop('SIGINT');
+    // });
+    // process.once('SIGTERM', () => {
+    //     bot.stop('SIGTERM')
+    // });
+
+    const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+    let ipChannel;
+    client.on(Events.ClientReady, readyClient => {
+        console.log(`Logged in as ${readyClient.user.tag}!`);
+        ipChannel = client.channels.cache.find(channel => channel.name === 'ip');
+    });
+
+    const bot = {
+        telegram: {
+            sendMessage: async (chatId, message, options) => {
+                try {
+                    const getChannelByChatId = (chatId) => {
+                        switch (chatId) {
+                            case 1906945459: return ipChannel;
+                            default: return null;
+                        }
+                    }
+                    const convertHTMLToMarkdown = (html) => {
+                        return html
+                            .replace('✍️', 'Signed')
+                            .replace(/<a href="(.*?)">(.*?)<\/a>/g, '[$2](<$1>)') // Convert links
+                            .replace(/<b>(.*?)<\/b>/g, '**$1**') // Bold
+                            .replace(/<i>(.*?)<\/i>/g, '*$1*') // Italic
+                            .replace(/<u>(.*?)<\/u>/g, '__$1__') // Underline
+                            .replace(/<s>(.*?)<\/s>/g, '~~$1~~') // Strikethrough
+                            .replace(/<code>(.*?)<\/code>/g, '`$1`') // Inline code
+                            .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, '```\n$1\n```'); // Code block
+                    }
+
+                    if (options && options.parse_mode === 'HTML') {
+                        message = convertHTMLToMarkdown(message);
+                    }
+                    const channel = getChannelByChatId(chatId);
+                    await channel.send(message);
+                    console.log(`Sending message to ${chatId}: ${message}`);
+                } catch (error) {
+                    log.error(`Failed to send message to ${chatId}:`, error);
+                }
+            }
+        },
+        launch: () => {
+            console.log('Bot launched');
+            client.login(process.env.PUBLIC_KEY);
+        },
+        stop: (signal) => {
+            console.log(`Bot stopped due to signal: ${signal}`);
+            client.destroy();
         }
-    });
-    bot.catch((error, ctx) => {
-        console.log(`Ooops, encountered an error for ${ctx.updateType}`, error);
-        setTimeout(ctx.telegram.sendMessage(1906945459, `Có lỗi xảy ra. ${JSON.stringify(error)}`), 10000);
-    });
+    };
+
     bot.launch();
 
     // Enable graceful stop
@@ -106,5 +165,6 @@ const checkAndUpdateIp = async (bot) => {
     });
 
     await checkAndUpdateIp(bot);
+    const CHECK_INTERVAL_IN_MS = 60 * 60 * 1000;
     setInterval(() => checkAndUpdateIp(bot), CHECK_INTERVAL_IN_MS);
 })();
