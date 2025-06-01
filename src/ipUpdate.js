@@ -145,8 +145,8 @@ const checkAndUpdateIp = async (bot) => {
             }
         },
         launch: () => {
-            console.log('Bot launched');
-            client.login(process.env.PUBLIC_KEY);
+            console.log(`Bot launched ${DISCORD_TOKEN}`);
+            client.login(process.env.DISCORD_TOKEN);
         },
         stop: (signal) => {
             console.log(`Bot stopped due to signal: ${signal}`);
