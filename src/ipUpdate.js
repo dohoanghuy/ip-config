@@ -141,7 +141,7 @@ const checkAndUpdateIp = async (bot) => {
                     await channel.send(message);
                     console.log(`Sending message to ${chatId}: ${message}`);
                 } catch (error) {
-                    log.error(`Failed to send message to ${chatId}:`, error);
+                    console.error(`Failed to send message to ${chatId}:`, error);
                 }
             }
         },
