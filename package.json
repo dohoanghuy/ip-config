@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "ip": "nodemon src ipUpdate",
+    "ip": "nodemon src/ipUpdate",
     "gang": "node gangster/index.js"
   },
   "dependencies": {
