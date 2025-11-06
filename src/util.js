@@ -39,7 +39,9 @@ const writeLogToFile = (msg, logType, data) => {
 module.exports = {
     logger: {
         info: (msg, data) => writeLogToFile(msg, `info`, data),
+        warn: (msg, data) => writeLogToFile(msg, `warn`, data),
         error: (msg, error) => writeLogToFile(msg, `error`, error),
+        debug: (msg, data) => writeLogToFile(msg, `debug`, data),
         logTx: (msg, data) => writeLogToFile(msg, `tx`, data),
         logTxEr: (msg, data) => writeLogToFile(msg, `txEr`, data),
         logLPTx: (msg, data) => writeLogToFile(msg, `LPTx`, data),

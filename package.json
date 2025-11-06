@@ -1,15 +1,45 @@
 {
+  "name": "ip-config-monitor",
+  "version": "2.0.0",
+  "description": "Enhanced IP monitoring service with Telegram notifications and Git integration",
+  "main": "src/ipUpdateEnhanced.js",
   "scripts": {
+    "start": "node src/ipUpdateEnhanced.js",
+    "dev": "nodemon src/ipUpdateEnhanced.js",
     "ip": "nodemon src/ipUpdate",
-    "gang": "node gangster/index.js"
+    "ip:enhanced": "nodemon src/ipUpdateEnhanced.js",
+    "gang": "node gangster/index.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "health": "curl -s http://localhost:3000/health",
+    "status": "curl -s http://localhost:3000/status",
+    "force-check": "curl -X POST -s http://localhost:3000/api/check",
+    "health:pretty": "curl -s http://localhost:3000/health | python3 -m json.tool 2>/dev/null || curl -s http://localhost:3000/health",
+    "status:pretty": "curl -s http://localhost:3000/status | python3 -m json.tool 2>/dev/null || curl -s http://localhost:3000/status"
   },
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.7.7",
     "discord.js": "^14.19.3",
     "dotenv": "^16.0.1",
+    "express": "^4.21.1",
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.45",
-    "nodemon": "^2.0.18",
+    "nodemon": "^3.1.7",
     "telegraf": "^4.8.5"
-  }
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dohoanghuy/ip-config.git"
+  },
+  "keywords": [
+    "ip-monitoring",
+    "telegram-bot",
+    "git-automation",
+    "network-monitoring",
+    "nodejs"
+  ],
+  "author": "dohoanghuy",
+  "license": "MIT"
 }
