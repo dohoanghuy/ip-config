@@ -1,9 +1,10 @@
 /**
- * Configuration management for IP Monitor Service
- * Validates environment variables and provides default values
+ * Simplified Configuration for IP Monitor Service
+ * No notifications - just IP detection and Git commits
  */
 
 const path = require('path');
+const { logger } = require('../util');
 
 class Config {
     constructor() {
@@ -12,30 +13,13 @@ class Config {
     }
 
     validateEnvironment() {
-        const required = [
-            'TELEGRAM_TOKEN',
-            'TELEGRAM_CHAT_ID'
-        ];
-
-        const missing = required.filter(key => !process.env[key]);
-        if (missing.length > 0) {
-            throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-        }
-
-        // Validate chat ID is numeric
-        if (isNaN(parseInt(process.env.TELEGRAM_CHAT_ID))) {
-            throw new Error('TELEGRAM_CHAT_ID must be a valid number');
-        }
+        // No required environment variables for simple mode
+        // Everything has sensible defaults
+        logger.info('IP Monitor - no notification services required');
     }
 
     loadConfig() {
-        this.telegram = {
-            token: process.env.TELEGRAM_TOKEN,
-            chatId: parseInt(process.env.TELEGRAM_CHAT_ID),
-            timeout: parseInt(process.env.TELEGRAM_TIMEOUT) || 30000,
-            retryAttempts: parseInt(process.env.TELEGRAM_RETRY_ATTEMPTS) || 3
-        };
-
+        // IP Monitor settings
         this.ipMonitor = {
             checkInterval: parseInt(process.env.CHECK_INTERVAL_MS) || 60 * 60 * 1000, // 1 hour
             timeout: parseInt(process.env.IP_CHECK_TIMEOUT) || 30000,
@@ -43,6 +27,7 @@ class Config {
             configPath: process.env.IP_CONFIG_PATH || path.join(process.cwd(), 'src/config/ip.json')
         };
 
+        // Git settings (enabled by default)
         this.git = {
             enabled: process.env.GIT_COMMIT_ENABLED !== 'false',
             maxRetries: parseInt(process.env.GIT_MAX_RETRIES) || 3,
@@ -50,6 +35,7 @@ class Config {
             autoCommit: process.env.GIT_AUTO_COMMIT !== 'false'
         };
 
+        // GitHub settings for remote IP comparison
         const githubOwner = process.env.GITHUB_OWNER || 'dohoanghuy';
         const githubRepo = process.env.GITHUB_REPO || 'ip-config';
         const githubBranch = process.env.GITHUB_BRANCH || 'main';
@@ -61,6 +47,7 @@ class Config {
             rawUrl: process.env.GITHUB_RAW_URL || `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/${githubBranch}/src/config/ip.json`
         };
 
+        // Logging settings
         this.logging = {
             level: process.env.LOG_LEVEL || 'info',
             enableConsole: process.env.LOG_CONSOLE !== 'false',
@@ -68,54 +55,47 @@ class Config {
             filePath: process.env.LOG_FILE_PATH || 'logs/ip-monitor.log'
         };
 
+        // Server settings (optional health endpoint)
         this.server = {
             port: parseInt(process.env.PORT) || 3000,
             host: process.env.HOST || '0.0.0.0',
             enableHealthCheck: process.env.HEALTH_CHECK !== 'false'
         };
 
+        // Rate limiting (minimal for simple mode)
         this.rateLimiting = {
-            notificationWindow: parseInt(process.env.NOTIFICATION_RATE_WINDOW) || 60000, // 1 minute
-            maxNotifications: parseInt(process.env.MAX_NOTIFICATIONS_PER_WINDOW) || 5,
             debounceDelay: parseInt(process.env.DEBOUNCE_DELAY) || 5000
         };
+
+        // Paths
+        this.configPath = this.ipMonitor.configPath;
+        this.checkInterval = this.ipMonitor.checkInterval;
     }
 
-    // Getters for easy access
-    get telegramToken() { return this.telegram.token; }
-    get telegramChatId() { return this.telegram.chatId; }
-    get checkInterval() { return this.ipMonitor.checkInterval; }
-    get ipConfigPath() { return this.ipMonitor.configPath; }
-    get githubRawUrl() { return this.github.rawUrl; }
-
-    // Validation helpers
-    isProduction() {
-        return process.env.NODE_ENV === 'production';
+    /**
+     * Get service name for logging
+     */
+    getServiceName() {
+        return 'IP Monitor';
     }
 
+    /**
+     * Check if running in development mode
+     */
     isDevelopment() {
-        return process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+        return process.env.NODE_ENV === 'development';
     }
 
+    /**
+     * Get configuration as string for logging
+     */
     toString() {
-        // Return config without sensitive information for logging
         return JSON.stringify({
-            telegram: {
-                chatId: this.telegram.chatId,
-                timeout: this.telegram.timeout,
-                retryAttempts: this.telegram.retryAttempts
-            },
-            ipMonitor: this.ipMonitor,
-            git: this.git,
-            github: {
-                owner: this.github.owner,
-                repo: this.github.repo,
-                branch: this.github.branch
-            },
-            logging: this.logging,
-            server: this.server,
-            rateLimiting: this.rateLimiting,
-            environment: process.env.NODE_ENV || 'development'
+            checkInterval: this.checkInterval,
+            gitEnabled: this.git.enabled,
+            configPath: this.configPath,
+            github: this.github,
+            server: this.server
         }, null, 2);
     }
 }

@@ -1,171 +1,216 @@
+/**
+ * Simple IP Monitor Application
+ * Lightweight version - just IP detection and Git commits
+ * 
+ * Features:
+ * - Multiple IP detection methods with fallbacks
+ * - Git integration for automatic commits
+ * - Basic health monitoring endpoint
+ * - Graceful shutdown handling
+ * - Simple logging
+ */
+
 require('dotenv').config();
-const { Telegraf } = require('telegraf');
-const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const axios = require('axios');
-const fs = require('fs');
+
+const path = require('path');
 const { logger } = require('./util');
-const { execSync } = require('child_process');
 
-const commitIpChange = (ip) => {
-    console.log({
-        a: process.cwd(),
-        b: __dirname
-    });
-    execSync(`git pull`, { cwd: process.cwd() });
-    execSync(`git add .`, { cwd: process.cwd() });
-    // execSync(`git add ${__dirname}/config/ip.json`, { cwd: process.cwd() });
-    execSync(`git commit -m "update ip ${ip}"`, { cwd: process.cwd() });
-    execSync(`git push`, { cwd: process.cwd() });
-    // const stdout = execSync('git status', { cwd: process.cwd() }).toString();
-    // console.log(stdout);
-    // execSync('git status', { cwd: __dirname });
-}
+// Import core components
+const Config = require('./config/Config');
+const IpMonitorService = require('./services/IpMonitorService');
+const HealthServer = require('./services/HealthServer');
 
-const htmlOptions = { parse_mode: 'HTML', disable_web_page_preview: 'true' };
+class Application {
+    constructor() {
+        this.config = null;
+        this.ipMonitorService = null;
+        this.healthServer = null;
+        this.isShuttingDown = false;
 
-const checkAndUpdateIp = async (bot) => {
-    try {
-        console.log('Start fetch ip ...');
-        const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
-        const ip = JSON.parse(rawdata);
+        // Setup process handlers
+        this.setupProcessHandlers();
+    }
 
-        const IP_INFO_URL = `https://raw.githubusercontent.com/dohoanghuy/ip-config/main/src/config/ip.json`;
-        const remoteIp = await axios.get(IP_INFO_URL, {
-            headers: {
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                // accept-encoding: gzip, deflate, br
-                'accept-language': 'en-US,en;q=0.9,vi;q=0.8',
-                'cache-control': 'no-cache',
-                'pragma': 'no-cache',
-                'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
-                'sec-ch-ua-mobile': '?0',
-                'sec-ch-ua-platform': "macOS",
-                'sec-fetch-dest': 'document',
-                'sec-fetch-mode': 'navigate',
-                'sec-fetch-site': 'none',
-                'sec-fetch-user': '?1',
-                'upgrade-insecure-requests': '1',
-                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-            },
-            timeout: Number(process.env.TIMEOUT) || 30000
-        });
-
-        // await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nStart fetch ip (current ip: ${ip['crypto-web-tool']}, remote ip: ${remoteIp.data['crypto-web-tool']})`, htmlOptions)
-
-        let publicIp;
+    /**
+     * Initialize the application
+     */
+    async initialize() {
         try {
-            publicIp = execSync(`dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com`, { cwd: process.cwd() }).toString().replace('\n', '').replace('\"', '').replace('"', '');
-            // await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nFetch ip success: ${publicIp}`, htmlOptions)
+            logger.info('Initializing IP Monitor Application...');
+
+            // Load and validate configuration
+            this.config = new Config();
+            logger.info('Configuration loaded successfully');
+
+            if (this.config.isDevelopment()) {
+                logger.info('Running in development mode');
+                logger.info('Configuration:', this.config.toString());
+            }
+
+            // Initialize IP Monitor Service
+            this.ipMonitorService = new IpMonitorService(this.config);
+
+            // Initialize Health Server (optional)
+            if (this.config.server.enableHealthCheck) {
+                this.healthServer = new HealthServer(this.config, this.ipMonitorService);
+            }
+
+            logger.info('Application initialized successfully');
+
         } catch (error) {
-            logger.info(`Error happen ${error}`);
+            logger.error('Application initialization failed:', error);
             throw error;
         }
+    }
 
-        logger.info(`${new Date().toISOString()}`, { ip: ip['crypto-web-tool'], publicIp });
+    /**
+     * Start the application
+     */
+    async start() {
+        try {
+            if (!this.config || !this.ipMonitorService) {
+                throw new Error('Application not initialized. Call initialize() first.');
+            }
 
-        if (ip['crypto-web-tool'] === publicIp && remoteIp.data['crypto-web-tool'] === publicIp) return;
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nip oudated: <code>${ip['crypto-web-tool']}</code> -> <code>${publicIp}</code>`, htmlOptions)
+            logger.info('Starting IP Monitor Application...');
 
-        // console.log(`${new Date()} need to update ip now!!!`);
-        logger.info(`${new Date()} need to update ip now!!!`);
-        fs.writeFileSync(`${process.cwd()}/src/config/ip.json`, JSON.stringify({ 'crypto-web-tool': publicIp }));
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nWrite to file success: <code>${publicIp}</code>`, htmlOptions)
+            // Start health server first (if enabled)
+            if (this.healthServer) {
+                await this.healthServer.start();
+                const serverInfo = this.healthServer.getInfo();
+                logger.info(`Health server started on ${serverInfo.host}:${serverInfo.port}`);
+                logger.info(`Health server available at http://${serverInfo.host}:${serverInfo.port}`);
+            }
 
-        commitIpChange(publicIp);
-        await bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\nCommit new ip success: <code>${publicIp}</code>`, htmlOptions)
-    } catch (error) {
-        logger.error('error happen', error);
-        bot.telegram.sendMessage(1906945459, `${new Date().toISOString()}\ncheckAndUpdateIp error ${JSON.stringify(error)}`, htmlOptions)
+            // Start IP Monitor Service
+            await this.ipMonitorService.start();
+
+            logger.info('🚀 IP Monitor Application started successfully!');
+            logger.info(`📊 Monitoring interval: ${Math.round(this.config.checkInterval / 60000)} minutes`);
+            logger.info(`🔧 Git integration: ${this.config.git.enabled ? 'Enabled' : 'Disabled'}`);
+
+            if (this.healthServer) {
+                logger.info(`🏥 Health endpoint: http://localhost:${this.config.server.port}/health`);
+            }
+
+            logger.info('Application startup completed. Press Ctrl+C to stop.');
+
+            return true;
+
+        } catch (error) {
+            logger.error('Application startup failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Stop the application
+     */
+    async stop(reason = 'Manual') {
+        if (this.isShuttingDown) {
+            logger.warn('Shutdown already in progress...');
+            return;
+        }
+
+        try {
+            this.isShuttingDown = true;
+            logger.info(`🛑 Shutting down IP Monitor Application: ${reason}`);
+
+            // Stop IP Monitor Service
+            if (this.ipMonitorService) {
+                await this.ipMonitorService.stop(reason);
+                logger.info('IP Monitor Service stopped');
+            }
+
+            // Stop Health Server
+            if (this.healthServer) {
+                await this.healthServer.stop();
+                logger.info('Health Server stopped');
+            }
+
+            logger.info('✅ Application shutdown completed gracefully');
+
+        } catch (error) {
+            logger.error('Error during application shutdown:', error);
+        }
+    }
+
+    /**
+     * Setup process signal handlers
+     */
+    setupProcessHandlers() {
+        // Handle process termination signals
+        const signals = ['SIGINT', 'SIGTERM', 'SIGUSR2'];
+
+        signals.forEach(signal => {
+            process.on(signal, async () => {
+                logger.info(`Received ${signal}: ${this.getSignalDescription(signal)}`);
+                await this.stop(this.getSignalDescription(signal));
+                process.exit(0);
+            });
+        });
+
+        // Handle uncaught exceptions
+        process.on('uncaughtException', async (error) => {
+            logger.error('Uncaught Exception:', error);
+            await this.stop('Uncaught Exception');
+            process.exit(1);
+        });
+
+        // Handle unhandled promise rejections
+        process.on('unhandledRejection', async (reason, promise) => {
+            logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+            await this.stop('Unhandled Rejection');
+            process.exit(1);
+        });
+    }
+
+    /**
+     * Get human-readable description for process signals
+     */
+    getSignalDescription(signal) {
+        const descriptions = {
+            'SIGINT': 'Interrupt Signal (Ctrl+C)',
+            'SIGTERM': 'Termination Signal',
+            'SIGUSR2': 'User Signal 2 (nodemon restart)'
+        };
+        return descriptions[signal] || signal;
+    }
+
+    /**
+     * Get application status
+     */
+    async getStatus() {
+        if (!this.ipMonitorService) {
+            return {
+                status: 'not_initialized',
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        return await this.ipMonitorService.getStatus();
     }
 }
 
-(async () => {
-    const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
-    bot.start(async (ctx) => ctx.reply(`Hello`));
-    bot.on('message', async (ctx) => {
-        if (!ctx.message.text || ctx.message.text.length === 0) return;
-        if (ctx.message.text.includes(`/ip`)) {
-            const rawdata = fs.readFileSync(`${process.cwd()}/src/config/ip.json`);
-            const ip = JSON.parse(rawdata);
-            return bot.telegram.sendMessage(1906945459, `<code>${ip['crypto-web-tool']}</code>`, htmlOptions);
-        }
+// Create and run the application
+async function main() {
+    const app = new Application();
+
+    try {
+        await app.initialize();
+        await app.start();
+    } catch (error) {
+        logger.error('Failed to start application:', error);
+        process.exit(1);
+    }
+}
+
+// Start the application
+if (require.main === module) {
+    main().catch(error => {
+        console.error('Application crashed:', error);
+        process.exit(1);
     });
-    bot.catch((error, ctx) => {
-        console.log(`Ooops, encountered an error for ${ctx.updateType}`, error);
-        setTimeout(ctx.telegram.sendMessage(1906945459, `Có lỗi xảy ra. ${JSON.stringify(error)}`), 10000);
-    });
-    bot.launch();
+}
 
-    // Enable graceful stop
-    process.once('SIGINT', () => {
-        bot.stop('SIGINT');
-    });
-    process.once('SIGTERM', () => {
-        bot.stop('SIGTERM')
-    });
-
-    // const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-    // let ipChannel;
-    // client.on(Events.ClientReady, readyClient => {
-    //     console.log(`Logged in as ${readyClient.user.tag}!`);
-    //     ipChannel = client.channels.cache.find(channel => channel.name === 'ip');
-    //     ipChannel.send('Ip bot started successfully!');
-    // });
-
-    // const bot = {
-    //     telegram: {
-    //         sendMessage: async (chatId, message, options) => {
-    //             try {
-    //                 const getChannelByChatId = (chatId) => {
-    //                     switch (chatId) {
-    //                         case 1906945459: return ipChannel;
-    //                         default: return null;
-    //                     }
-    //                 }
-    //                 const convertHTMLToMarkdown = (html) => {
-    //                     return html
-    //                         .replace('✍️', 'Signed')
-    //                         .replace(/<a href="(.*?)">(.*?)<\/a>/g, '[$2](<$1>)') // Convert links
-    //                         .replace(/<b>(.*?)<\/b>/g, '**$1**') // Bold
-    //                         .replace(/<i>(.*?)<\/i>/g, '*$1*') // Italic
-    //                         .replace(/<u>(.*?)<\/u>/g, '__$1__') // Underline
-    //                         .replace(/<s>(.*?)<\/s>/g, '~~$1~~') // Strikethrough
-    //                         .replace(/<code>(.*?)<\/code>/g, '`$1`') // Inline code
-    //                         .replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, '```\n$1\n```'); // Code block
-    //                 }
-
-    //                 if (options && options.parse_mode === 'HTML') {
-    //                     message = convertHTMLToMarkdown(message);
-    //                 }
-    //                 const channel = getChannelByChatId(chatId);
-    //                 await channel.send(message);
-    //                 console.log(`Sending message to ${chatId}: ${message}`);
-    //             } catch (error) {
-    //                 console.error(`Failed to send message to ${chatId}:`, error);
-    //             }
-    //         }
-    //     },
-    //     launch: () => {
-    //         console.log(`Bot launched ${process.env.DISCORD_TOKEN}`);
-    //         client.login(process.env.DISCORD_TOKEN);
-    //     },
-    //     stop: (signal) => {
-    //         console.log(`Bot stopped due to signal: ${signal}`);
-    //         client.destroy();
-    //     }
-    // };
-
-    // bot.launch();
-
-    // // Enable graceful stop
-    // process.once('SIGINT', () => {
-    //     bot.stop('SIGINT');
-    // });
-    // process.once('SIGTERM', () => {
-    //     bot.stop('SIGTERM')
-    // });
-
-    await checkAndUpdateIp(bot);
-    const CHECK_INTERVAL_IN_MS = 60 * 60 * 1000;
-    setInterval(() => checkAndUpdateIp(bot), CHECK_INTERVAL_IN_MS);
-})();
+module.exports = Application;

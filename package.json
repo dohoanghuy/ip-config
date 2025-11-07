@@ -2,14 +2,13 @@
   "name": "ip-config-monitor",
   "version": "2.0.0",
   "description": "Enhanced IP monitoring service with Telegram notifications and Git integration",
-  "main": "src/ipUpdateEnhanced.js",
+  "main": "src/ipUpdate.js",
   "scripts": {
-    "start": "node src/ipUpdateEnhanced.js",
-    "dev": "nodemon src/ipUpdateEnhanced.js",
-    "ip": "nodemon src/ipUpdate",
-    "ip:enhanced": "nodemon src/ipUpdateEnhanced.js",
+    "start": "node src/ipUpdate.js",
+    "dev": "nodemon src/ipUpdate.js",
+    "ip": "node src/ipUpdate.js",
     "gang": "node gangster/index.js",
-    "test": "echo \"No tests specified\" && exit 0",
+    "test": "node test-ip-monitor.js",
     "health": "curl -s http://localhost:3000/health",
     "status": "curl -s http://localhost:3000/status",
     "force-check": "curl -X POST -s http://localhost:3000/api/check",
@@ -18,13 +17,13 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
-    "discord.js": "^14.19.3",
     "dotenv": "^16.0.1",
     "express": "^4.21.1",
     "moment": "^2.29.3",
-    "moment-timezone": "^0.5.45",
-    "nodemon": "^3.1.7",
-    "telegraf": "^4.8.5"
+    "moment-timezone": "^0.5.45"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
   },
   "engines": {
     "node": ">=14.0.0"

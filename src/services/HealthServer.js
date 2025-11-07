@@ -67,7 +67,7 @@ class HealthServer {
         // Health check endpoint
         this.app.get('/health', async (req, res) => {
             try {
-                const health = this.ipMonitorService.getHealthCheck();
+                const health = this.ipMonitorService.getHealth();
                 const statusCode = health.healthy ? 200 : 503;
 
                 res.status(statusCode).json({
@@ -106,7 +106,7 @@ class HealthServer {
         this.app.get('/metrics', async (req, res) => {
             try {
                 const status = await this.ipMonitorService.getStatus();
-                const health = this.ipMonitorService.getHealthCheck();
+                const health = this.ipMonitorService.getHealth();
 
                 const metrics = this.formatPrometheusMetrics(status, health);
 

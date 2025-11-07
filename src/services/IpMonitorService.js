@@ -1,6 +1,7 @@
 /**
- * Main IP Monitor Service
- * Orchestrates IP detection, file updates, Git operations, and notifications
+ * Simple IP Monitor Service
+ * Core functionality: IP detection and Git commits only
+ * No notifications, webhooks, or complex features
  */
 
 const fs = require('fs').promises;
@@ -10,7 +11,6 @@ const { logger } = require('../util');
 
 const IpDetectionService = require('./IpDetectionService');
 const GitService = require('./GitService');
-const TelegramService = require('./TelegramService');
 
 class IpMonitorService {
     constructor(config) {
@@ -19,22 +19,15 @@ class IpMonitorService {
         this.intervalId = null;
         this.health = new HealthStatus();
 
-        // Initialize services
+        // Initialize core services only
         this.ipDetection = new IpDetectionService(config);
         this.gitService = new GitService(config);
-        this.telegramService = new TelegramService(config);
 
         // Debounced IP check to prevent rapid successive calls
         this.debouncedCheck = debounce(
             this.checkAndUpdateIp.bind(this),
             config.rateLimiting.debounceDelay
         );
-
-        logger.info('IP Monitor Service initialized', {
-            checkInterval: config.checkInterval,
-            gitEnabled: config.git.enabled,
-            configPath: config.ipConfigPath
-        });
     }
 
     /**
@@ -42,21 +35,10 @@ class IpMonitorService {
      */
     async start() {
         try {
-            if (this.isRunning) {
-                logger.warn('Service is already running');
-                return false;
-            }
-
             logger.info('Starting IP Monitor Service...');
 
             // Validate configuration and services
             await this.validateServices();
-
-            // Start Telegram bot
-            await this.telegramService.start();
-
-            // Send startup notification
-            await this.telegramService.notifyServiceStart();
 
             // Perform initial IP check
             await this.performInitialCheck();
@@ -67,13 +49,12 @@ class IpMonitorService {
             this.isRunning = true;
             this.health.recordCheck(true);
 
-            logger.info('IP Monitor Service started successfully');
+            logger.info('IP Monitor Service started successfully!');
             return true;
 
         } catch (error) {
             logger.error('Failed to start IP Monitor Service:', error);
             this.health.recordCheck(false, error);
-            await this.telegramService.notifyError(error, 'Service Startup');
             throw error;
         }
     }
@@ -93,10 +74,7 @@ class IpMonitorService {
                 this.intervalId = null;
             }
 
-            // Stop Telegram bot
-            await this.telegramService.stop(reason);
-
-            logger.info('IP Monitor Service stopped successfully');
+            logger.info('IP Monitor Service stopped successfully!');
 
         } catch (error) {
             logger.error('Error stopping IP Monitor Service:', error);
@@ -115,15 +93,19 @@ class IpMonitorService {
             throw new Error(`IP Detection service validation failed: ${ipValidation.error}`);
         }
 
-        // Validate Git service
-        const gitValidation = await this.gitService.validateService();
-        if (!gitValidation.healthy && this.config.git.enabled) {
-            throw new Error(`Git service validation failed: ${gitValidation.error}`);
+        // Validate Git service (if enabled)
+        if (this.config.git.enabled) {
+            const gitValidation = await this.gitService.validateService();
+            if (!gitValidation.healthy) {
+                logger.warn(`Git service validation failed: ${gitValidation.error}`);
+                logger.warn('Continuing without Git integration...');
+                this.config.git.enabled = false;
+            }
         }
 
         // Validate IP config file exists
         try {
-            await fs.access(this.config.ipConfigPath);
+            await fs.access(this.config.configPath);
         } catch (error) {
             // Create initial config file if it doesn't exist
             await this.createInitialConfig();
@@ -140,7 +122,7 @@ class IpMonitorService {
             logger.info('Creating initial IP configuration file...');
 
             // Ensure directory exists
-            const configDir = path.dirname(this.config.ipConfigPath);
+            const configDir = path.dirname(this.config.configPath);
             await fs.mkdir(configDir, { recursive: true });
 
             // Get current IP
@@ -154,7 +136,7 @@ class IpMonitorService {
             };
 
             await fs.writeFile(
-                this.config.ipConfigPath,
+                this.config.configPath,
                 JSON.stringify(initialConfig, null, 2),
                 'utf8'
             );
@@ -210,7 +192,7 @@ class IpMonitorService {
             const publicIp = publicIpResult.ip;
             logger.info(`Public IP: ${publicIp} (via ${publicIpResult.method})`);
 
-            // Get remote IP from GitHub
+            // Get remote IP from GitHub (for comparison)
             let remoteIp;
             try {
                 const remoteIpResult = await this.ipDetection.getRemoteIp();
@@ -236,7 +218,6 @@ class IpMonitorService {
 
             // IP change detected
             logger.info(`IP change detected: ${localIp} -> ${publicIp}`);
-            await this.telegramService.notifyIpChange(localIp, publicIp);
 
             // Update local configuration
             await this.updateLocalConfig(publicIp);
@@ -244,14 +225,13 @@ class IpMonitorService {
             // Commit to Git if enabled
             if (this.config.git.enabled) {
                 await this.commitIpChange(publicIp, localIp);
+            } else {
+                logger.info('Git integration disabled - skipping commit');
             }
 
             // Record IP change in health status
             this.health.recordIpChange(localIp, publicIp);
             this.health.recordCheck(true);
-
-            // Send success notification
-            await this.telegramService.notifyIpUpdateSuccess(publicIp);
 
             const duration = Date.now() - startTime;
             logger.info(`IP update completed successfully in ${duration}ms`);
@@ -269,23 +249,22 @@ class IpMonitorService {
             logger.error(`IP check failed after ${duration}ms:`, error);
 
             this.health.recordCheck(false, error);
-            await this.telegramService.notifyError(error, 'IP Check');
-
             throw error;
         }
     }
 
     /**
-     * Read current IP from local configuration file
+     * Read local IP from configuration file
      */
     async readLocalIp() {
         try {
-            const data = await fs.readFile(this.config.ipConfigPath, 'utf8');
-            const config = safeJsonParse(data, {});
+            const configContent = await fs.readFile(this.config.configPath, 'utf8');
+            const config = safeJsonParse(configContent, {});
 
-            const ip = config['crypto-web-tool'];
+            const ip = config['crypto-web-tool'] || config.ip || null;
+
             if (!ip || !isValidIp(ip)) {
-                throw new Error(`Invalid IP in config file: ${ip}`);
+                throw new Error('Invalid or missing IP in local config');
             }
 
             return ip;
@@ -299,26 +278,29 @@ class IpMonitorService {
      */
     async updateLocalConfig(newIp) {
         try {
-            logger.info(`Updating local config with IP: ${newIp}`);
+            logger.info(`Updating local IP config: ${newIp}`);
 
-            // Read current config
-            let config = {};
+            // Read existing config
+            let existingConfig = {};
             try {
-                const data = await fs.readFile(this.config.ipConfigPath, 'utf8');
-                config = safeJsonParse(data, {});
+                const configContent = await fs.readFile(this.config.configPath, 'utf8');
+                existingConfig = safeJsonParse(configContent, {});
             } catch (error) {
                 logger.warn('Could not read existing config, creating new one');
             }
 
-            // Update with new IP and metadata
-            config['crypto-web-tool'] = newIp;
-            config.lastUpdated = formatTimestamp();
-            config.updatedBy = 'ip-monitor-service';
+            // Update with new IP
+            const updatedConfig = {
+                ...existingConfig,
+                'crypto-web-tool': newIp,
+                lastUpdated: formatTimestamp(),
+                lastUpdateBy: 'ip-monitor-service'
+            };
 
             // Write updated config
             await fs.writeFile(
-                this.config.ipConfigPath,
-                JSON.stringify(config, null, 2),
+                this.config.configPath,
+                JSON.stringify(updatedConfig, null, 2),
                 'utf8'
             );
 
@@ -349,83 +331,69 @@ class IpMonitorService {
         } catch (error) {
             logger.error('Git commit failed:', error);
             // Don't throw here - IP was already updated locally
-            await this.telegramService.notifyError(error, 'Git Commit');
+            logger.warn('IP was updated locally but not committed to repository');
         }
     }
 
     /**
-     * Get comprehensive service status
+     * Get service status (simplified)
      */
     async getStatus() {
         try {
             const healthStatus = this.health.getStatus();
             const ipDetectionStats = this.ipDetection.getStats();
-            const gitStatus = await this.gitService.validateService();
-            const telegramStats = this.telegramService.getStats();
+            const gitStatus = this.config.git.enabled ? await this.gitService.validateService() : { enabled: false };
 
-            const currentIp = await this.readLocalIp();
+            const currentIp = await this.readLocalIp().catch(() => 'Unknown');
 
             return {
                 service: {
-                    running: this.isRunning,
-                    uptime: healthStatus.uptimeMs,
-                    checkInterval: this.config.checkInterval,
-                    lastCheck: healthStatus.lastCheck,
-                    lastSuccess: healthStatus.lastSuccess
-                },
-                ip: {
-                    current: currentIp,
-                    lastChange: healthStatus.lastIpChange
-                },
-                health: {
+                    name: 'IP Monitor',
+                    isRunning: this.isRunning,
                     healthy: healthStatus.healthy,
-                    errorCount: healthStatus.errorCount,
-                    totalChecks: healthStatus.totalChecks,
-                    recentErrors: healthStatus.errors.slice(-3)
+                    checkInterval: this.config.checkInterval,
+                    gitEnabled: this.config.git.enabled
                 },
+                currentIp: currentIp,
+                health: healthStatus,
                 services: {
                     ipDetection: ipDetectionStats,
-                    git: gitStatus,
-                    telegram: telegramStats
-                }
+                    git: gitStatus
+                },
+                timestamp: Date.now()
             };
+
         } catch (error) {
+            logger.error('Failed to get service status:', error);
             return {
-                error: error.message,
-                timestamp: formatTimestamp()
+                service: {
+                    name: 'IP Monitor',
+                    healthy: false,
+                    error: error.message
+                },
+                timestamp: Date.now()
             };
         }
     }
 
     /**
-     * Get health check information
+     * Get service health for health endpoint
      */
-    getHealthCheck() {
+    getHealth() {
         const healthStatus = this.health.getStatus();
 
         return {
-            healthy: this.isRunning && healthStatus.healthy,
-            uptime: healthStatus.uptimeMs,
+            status: healthStatus.healthy ? 'healthy' : 'unhealthy',
+            timestamp: new Date().toISOString(),
+            healthy: healthStatus.healthy,
+            uptime: healthStatus.uptime,
             lastCheck: healthStatus.lastCheck,
             errorCount: healthStatus.errorCount,
             services: {
                 monitor: this.isRunning,
-                git: this.config.git.enabled,
-                telegram: true // Assuming it's working if service is running
+                git: this.config.git.enabled
             }
         };
-    }
-
-    /**
-     * Force an immediate IP check (for manual triggers)
-     */
-    async forceCheck() {
-        if (!this.isRunning) {
-            throw new Error('Service is not running');
-        }
-
-        logger.info('Manual IP check triggered');
-        return await this.checkAndUpdateIp();
     }
 }
 
